@@ -46,6 +46,10 @@ ADD_DEFINITIONS(
 )
 
 SET(SOURCE_FILES
+    src/com/Server.h
+    src/com/Server.cpp
+    src/com/Airport.h
+    src/com/Airport.cpp
     src/vACDM.cpp
     src/vACDM.h
     src/main.cpp
