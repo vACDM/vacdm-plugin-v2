@@ -1,5 +1,9 @@
 #include "Airport.h"
 
+#ifdef DEBUG_BUILD
+#include <iostream>
+#endif
+
 using namespace std::chrono_literals;
 using namespace vacdm::com;
 
@@ -33,6 +37,10 @@ void Airport::run()
     {
       continue;
     }
+
+    #ifdef DEBUG_BUILD
+    std::cout << "Update " << m_airportIcao << "\n";
+    #endif
   }
 }
 

@@ -6,12 +6,22 @@
 #include "com/Server.h"
 #include "utils/trimString.h"
 
+#ifdef DEBUG_BUILD
+#include <iostream>
+#endif
+
 namespace vacdm
 {
   vACDM::vACDM() : CPlugIn(EuroScopePlugIn::COMPATIBILITY_CODE, PLUGIN_NAME, PLUGIN_VERSION, PLUGIN_AUTHOR, PLUGIN_LICENSE)
   {
     DisplayMessage("Version " + std::string(PLUGIN_VERSION) + " loaded", "Initialisation");
     this->checkServerConfiguration();
+
+    #ifdef DEBUG_BUILD
+    AllocConsole();
+    freopen("CONOUT$", "w", stdout);
+    freopen("CONOUT$", "w", stderr);
+    #endif
   }
   vACDM::~vACDM()
   {
