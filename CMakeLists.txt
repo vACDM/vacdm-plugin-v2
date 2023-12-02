@@ -54,6 +54,8 @@ SET(SOURCE_FILES
     src/com/Server.cpp
     src/com/Airport.h
     src/com/Airport.cpp
+    src/log/Logger.h
+    src/log/Logger.cpp
     src/vACDM.cpp
     src/vACDM.h
     src/main.cpp

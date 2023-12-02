@@ -6,22 +6,21 @@
 #include "com/Server.h"
 #include "utils/trimString.h"
 
-#ifdef DEBUG_BUILD
-#include <iostream>
-#endif
+#include "log/Logger.h"
 
 namespace vacdm
 {
   vACDM::vACDM() : CPlugIn(EuroScopePlugIn::COMPATIBILITY_CODE, PLUGIN_NAME, PLUGIN_VERSION, PLUGIN_AUTHOR, PLUGIN_LICENSE)
   {
-    DisplayMessage("Version " + std::string(PLUGIN_VERSION) + " loaded", "Initialisation");
-    this->checkServerConfiguration();
-
-    #ifdef DEBUG_BUILD
+#ifdef DEBUG_BUILD
     AllocConsole();
     freopen("CONOUT$", "w", stdout);
     freopen("CONOUT$", "w", stderr);
-    #endif
+#endif
+
+    DisplayMessage("Version " + std::string(PLUGIN_VERSION) + " loaded", "Initialisation");
+    this->checkServerConfiguration();
+    logging::Logger::instance().log("Initialisation", std::string(PLUGIN_VERSION), logging::Logger::Level::Info);
   }
   vACDM::~vACDM()
   {
@@ -56,6 +55,8 @@ namespace vacdm
   {
     DisplayUserMessage("vACDM", sender.c_str(), message.c_str(), true, false, false, false, false);
   }
+
+  // Euroscope Events:
 
   void vACDM::OnAirportRunwayActivityChanged()
   {

@@ -1,8 +1,6 @@
 #include "Airport.h"
 
-#ifdef DEBUG_BUILD
-#include <iostream>
-#endif
+#include "log/Logger.h"
 
 using namespace std::chrono_literals;
 using namespace vacdm::com;
@@ -38,9 +36,7 @@ void Airport::run()
       continue;
     }
 
-    #ifdef DEBUG_BUILD
-    std::cout << "Update " << m_airportIcao << "\n";
-    #endif
+    logging::Logger::instance().log("Airport " + this->m_airportIcao, " run", logging::Logger::Level::Info);
   }
 }
 
