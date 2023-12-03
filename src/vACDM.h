@@ -11,6 +11,7 @@
 #include <mutex>
 
 #include "com/Airport.h"
+#include "config/PluginConfig.h"
 
 namespace vacdm
 {
@@ -28,7 +29,16 @@ namespace vacdm
     std::mutex m_airportLock;
     std::list<std::shared_ptr<com::Airport>> m_airports;
 
+    // config:
+
+    std::string m_dllPath;
+    std::string m_configFileName = "\\vacdm.txt";
+    PluginConfig m_pluginConfig;
+
+    void changeServerUrl(const std::string &url);
+
     void checkServerConfiguration();
+    void reloadConfiguration();
 
   public:
     // Euroscope Events

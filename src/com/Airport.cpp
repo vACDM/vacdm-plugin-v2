@@ -5,10 +5,14 @@
 using namespace std::chrono_literals;
 using namespace vacdm::com;
 
+/// @brief Manages all flights and data for one airport. Updates data on specified interval
+/// @param airportIcao The airport name in ICAO format
 Airport::Airport(const std::string &airportIcao) : m_airportIcao(airportIcao), m_worker(), m_pause(false),
                                                    m_stop(false),
                                                    m_asyncMessagesLock(),
-                                                   m_asyncMessages()
+                                                   m_asyncMessages(),
+                                                   m_pilots(),
+                                                   m_pilotsLock()
 {
   this->m_worker = std::thread(&Airport::run, this);
 }
@@ -17,6 +21,22 @@ Airport::~Airport()
 {
   this->m_stop = true;
   this->m_worker.join();
+}
+
+void Airport::pause()
+{
+  this->m_pause = true;
+}
+
+void Airport::resume()
+{
+  this->m_pause = false;
+}
+
+void Airport::resetData()
+{
+  std::lock_guard guard(this->m_pilotsLock);
+  this->m_pilots.clear();
 }
 
 void Airport::run()

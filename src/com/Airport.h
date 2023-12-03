@@ -4,6 +4,7 @@
 #include <thread>
 #include <mutex>
 #include <list>
+#include <map>
 
 #include "types/Pilot.h"
 
@@ -37,6 +38,9 @@ namespace vacdm::com
     std::mutex m_asyncMessagesLock;
     std::list<AsyncMessage> m_asyncMessages;
 
+    std::mutex m_pilotsLock;
+    std::map<std::string, std::array<types::Pilot_t, 3>> m_pilots;
+
     void run();
 
   public:
@@ -45,6 +49,7 @@ namespace vacdm::com
 
     void pause();
     void resume();
+    void resetData();
 
     const std::string getAirportIcao() const;
   };

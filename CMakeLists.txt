@@ -54,6 +54,8 @@ SET(SOURCE_FILES
     src/com/Server.cpp
     src/com/Airport.h
     src/com/Airport.cpp
+    src/config/ConfigParser.h
+    src/config/ConfigParser.cpp
     src/log/Logger.h
     src/log/Logger.cpp
     src/vACDM.cpp

@@ -2,11 +2,16 @@
 #include "Version.h"
 
 #include <numeric>
+#include <Windows.h>
+#include <shlwapi.h>
 
 #include "com/Server.h"
-#include "utils/trimString.h"
+#include "config/ConfigParser.h"
+#include "utils/String.h"
 
 #include "log/Logger.h"
+
+EXTERN_C IMAGE_DOS_HEADER __ImageBase;
 
 namespace vacdm
 {
@@ -17,9 +22,17 @@ namespace vacdm
     freopen("CONOUT$", "w", stdout);
     freopen("CONOUT$", "w", stderr);
 #endif
+    DisplayMessage("Version " + std::string(PLUGIN_VERSION) + " loaded",
+                   "Initialisation");
 
-    DisplayMessage("Version " + std::string(PLUGIN_VERSION) + " loaded", "Initialisation");
-    this->checkServerConfiguration();
+    /* get DLL path */
+    char path[MAX_PATH + 1] = {0};
+    GetModuleFileNameA((HINSTANCE)&__ImageBase, path, MAX_PATH);
+    PathRemoveFileSpecA(path);
+    this->m_dllPath = std::string(path);
+
+    this->reloadConfiguration();
+
     logging::Logger::instance().log("Initialisation", std::string(PLUGIN_VERSION), logging::Logger::Level::Info);
   }
   vACDM::~vACDM()
@@ -56,6 +69,46 @@ namespace vacdm
     DisplayUserMessage("vACDM", sender.c_str(), message.c_str(), true, false, false, false, false);
   }
 
+  void vACDM::reloadConfiguration()
+  {
+    PluginConfig newConfig;
+    ConfigParser parser;
+
+    if (false == parser.parse(this->m_dllPath + this->m_configFileName, newConfig) || false == newConfig.valid)
+    {
+      std::string message = "vacdm.txt:" + std::to_string(parser.errorLine()) + ": " + parser.errorMessage();
+      DisplayMessage(message, "Config");
+    }
+    else
+    {
+      DisplayMessage("Reloaded the config", "Config");
+      if (this->m_pluginConfig.serverUrl != newConfig.serverUrl)
+        this->changeServerUrl(newConfig.serverUrl);
+      this->m_pluginConfig = newConfig;
+    }
+  }
+
+  void vACDM::changeServerUrl(const std::string &url)
+  {
+    // pause airport updates and reset internal data
+    this->m_airportLock.lock();
+    for (auto &airport : this->m_airports)
+    {
+      airport->pause();
+      airport->resetData();
+    }
+    this->m_airportLock.unlock();
+
+    com::Server::instance().changeServerAddress(url);
+    this->checkServerConfiguration();
+
+    // reenable airports
+    this->m_airportLock.lock();
+    for (auto &airport : this->m_airports)
+      airport->resume();
+    this->m_airportLock.unlock();
+  }
+
   // Euroscope Events:
 
   void vACDM::OnAirportRunwayActivityChanged()
@@ -68,7 +121,7 @@ namespace vacdm
     for (rwy = this->SectorFileElementSelectFirst(EuroScopePlugIn::SECTOR_ELEMENT_RUNWAY); rwy.IsValid() == true; rwy = this->SectorFileElementSelectNext(rwy, EuroScopePlugIn::SECTOR_ELEMENT_RUNWAY))
     {
       // trimmed airport ICAO, as GetAirportName() returns names with empty spaces at the end
-      std::string airportIcao = vacdm::utils::trim(rwy.GetAirportName());
+      std::string airportIcao = vacdm::utils::String::trim(rwy.GetAirportName());
 
       // if one of the selected runways is active as departure runway
       if (rwy.IsElementActive(true, 0) || rwy.IsElementActive(true, 1))
