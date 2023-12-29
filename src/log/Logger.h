@@ -11,6 +11,7 @@ namespace vacdm::logging
     enum class Level
     {
       Info,
+      Utils,
       Disabled
     };
 

@@ -5,6 +5,10 @@
 using namespace std::chrono_literals;
 using namespace vacdm::com;
 
+static constexpr std::size_t PilotConsolidated = 0;
+static constexpr std::size_t PilotEuroscope = 1;
+static constexpr std::size_t PilotServer = 2;
+
 /// @brief Manages all flights and data for one airport. Updates data on specified interval
 /// @param airportIcao The airport name in ICAO format
 Airport::Airport(const std::string &airportIcao) : m_airportIcao(airportIcao), m_worker(), m_pause(false),
@@ -63,4 +67,31 @@ void Airport::run()
 const std::string Airport::getAirportIcao() const
 {
   return this->m_airportIcao;
+}
+
+void Airport::updateFromEuroscope(types::Pilot &pilot)
+{
+  if (this->m_pause == true)
+    return;
+
+  std::lock_guard guard(this->m_pilotsLock);
+
+  bool found = false;
+  for (auto &pair : this->m_pilots)
+  {
+    if (pilot.callsign == pair.first)
+    {
+      const auto oldUpdateTime = pair.second[PilotEuroscope].lastUpdate;
+      pair.second[PilotEuroscope] = pilot;
+      pair.second[PilotEuroscope].lastUpdate = oldUpdateTime;
+      found = true;
+      break;
+    }
+  }
+
+  if (found == false)
+  {
+    pilot.lastUpdate = std::chrono::utc_clock::now();
+    this->m_pilots.insert({pilot.callsign, {pilot, pilot, types::Pilot()}});
+  }
 }

@@ -109,7 +109,64 @@ namespace vacdm
     this->m_airportLock.unlock();
   }
 
+  void vACDM::runEuroscopeUpdateCycle()
+  {
+    for (EuroScopePlugIn::CFlightPlan flightplan = FlightPlanSelectFirst(); flightplan.IsValid(); flightplan = FlightPlanSelectNext(flightplan))
+      this->updatePilotData(flightplan);
+  }
+
+  void vACDM::updatePilotData(const EuroScopePlugIn::CFlightPlan &flightplan)
+  {
+    // skip all non-IFR flights
+    if (flightplan.GetFlightPlanData().GetPlanType() != std::string_view("I"))
+      return;
+
+    // check if the aircraft is departing from an active airport, return if not
+    bool foundAirport = false;
+    for (auto &airport : this->m_airports)
+    {
+      if (airport->getAirportIcao() == flightplan.GetFlightPlanData().GetOrigin())
+      {
+        foundAirport = true;
+        break;
+      }
+    }
+    if (!foundAirport)
+      return;
+
+    types::Pilot pilot;
+
+    // required post message items:
+    pilot.callsign = flightplan.GetCallsign();
+    pilot.latitude = flightplan.GetFPTrackPosition().GetPosition().m_Latitude;
+    pilot.longitude = flightplan.GetFPTrackPosition().GetPosition().m_Longitude;
+    pilot.origin = flightplan.GetFlightPlanData().GetOrigin();
+    pilot.destination = flightplan.GetFlightPlanData().GetDestination();
+    pilot.eobt = vacdm::utils::convertEuroscopeDepartureTime(flightplan);
+    pilot.tobt = pilot.eobt;
+    pilot.runway = flightplan.GetFlightPlanData().GetDepartureRwy();
+    pilot.sid = flightplan.GetFlightPlanData().GetSidName();
+
+    std::lock_guard guard(this->m_airportLock);
+    for (auto &airport : this->m_airports)
+    {
+      if (airport->getAirportIcao() == pilot.origin)
+      {
+        airport->updateFromEuroscope(pilot);
+        logging::Logger::instance().log("ES-UpdateCycle", "Updated: " + pilot.callsign, logging::Logger::Level::Info);
+        return;
+      }
+    }
+  }
+
   // Euroscope Events:
+
+  void vACDM::OnTimer(const int Counter)
+  {
+    // run update cycle every 5 seconds
+    if (Counter % 5 == 0)
+      this->runEuroscopeUpdateCycle();
+  }
 
   void vACDM::OnAirportRunwayActivityChanged()
   {

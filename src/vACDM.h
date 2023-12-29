@@ -12,6 +12,7 @@
 
 #include "com/Airport.h"
 #include "config/PluginConfig.h"
+#include "utils/date.h"
 
 namespace vacdm
 {
@@ -40,8 +41,12 @@ namespace vacdm
     void checkServerConfiguration();
     void reloadConfiguration();
 
+    void runEuroscopeUpdateCycle();
+    void updatePilotData(const EuroScopePlugIn::CFlightPlan &flightplan);
+
   public:
     // Euroscope Events
+    void OnTimer(const int Counter) override;
     void OnAirportRunwayActivityChanged() override;
   };
 }

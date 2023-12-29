@@ -52,5 +52,7 @@ namespace vacdm::com
     void resetData();
 
     const std::string getAirportIcao() const;
+
+    void updateFromEuroscope(types::Pilot &pilot);
   };
 }

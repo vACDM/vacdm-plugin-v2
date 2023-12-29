@@ -58,6 +58,8 @@ SET(SOURCE_FILES
     src/config/ConfigParser.cpp
     src/log/Logger.h
     src/log/Logger.cpp
+    src/utils/Date.h
+    src/utils/Date.cpp
     src/vACDM.cpp
     src/vACDM.h
     src/main.cpp

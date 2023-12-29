@@ -19,7 +19,7 @@ namespace vacdm::types
 
     double latitude = 0.0;
     double longitude = 0.0;
-    bool taxizoneIsTaxiout;
+    bool taxizoneIsTaxiout = false;
 
     // flightplan & clearance data
 
@@ -52,6 +52,6 @@ namespace vacdm::types
 
     // event booking data
 
-    bool hasBooking;
+    bool hasBooking = false;
   } Pilot;
 }
