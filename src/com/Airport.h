@@ -54,5 +54,10 @@ namespace vacdm::com
     const std::string getAirportIcao() const;
 
     void updateFromEuroscope(types::Pilot &pilot);
+    /// @brief finds the pilot object using the callsign
+    /// @param callsign
+    /// @return the pilot data if found, a nullptr if the data could not be found
+    const types::Pilot &getPilot(const std::string &callsign);
+    bool pilotExists(const std::string &callsign);
   };
 }

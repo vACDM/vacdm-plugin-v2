@@ -3,6 +3,7 @@
 #include "log/Logger.h"
 
 using namespace std::chrono_literals;
+using namespace vacdm;
 using namespace vacdm::com;
 
 static constexpr std::size_t PilotConsolidated = 0;
@@ -94,4 +95,19 @@ void Airport::updateFromEuroscope(types::Pilot &pilot)
     pilot.lastUpdate = std::chrono::utc_clock::now();
     this->m_pilots.insert({pilot.callsign, {pilot, pilot, types::Pilot()}});
   }
+}
+
+const types::Pilot &Airport::getPilot(const std::string &callsign)
+{
+  std::lock_guard guard(this->m_pilotsLock);
+  return this->m_pilots.find(callsign)->second[PilotConsolidated];
+}
+
+bool Airport::pilotExists(const std::string &callsign)
+{
+  if (true == this->m_pause)
+    return false;
+
+  std::lock_guard guard(this->m_pilotsLock);
+  return this->m_pilots.cend() != this->m_pilots.find(callsign);
 }

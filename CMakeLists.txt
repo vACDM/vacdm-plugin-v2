@@ -56,6 +56,10 @@ SET(SOURCE_FILES
     src/com/Airport.cpp
     src/config/ConfigParser.h
     src/config/ConfigParser.cpp
+    src/core/TagItems.h
+    src/core/TagItems.cpp
+    src/core/TagItemsColor.h
+    src/core/TagItemsColor.cpp
     src/log/Logger.h
     src/log/Logger.cpp
     src/utils/Date.h

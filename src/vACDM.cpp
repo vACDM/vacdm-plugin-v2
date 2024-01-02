@@ -7,6 +7,7 @@
 
 #include "com/Server.h"
 #include "config/ConfigParser.h"
+#include "core/TagItems.h"
 #include "utils/String.h"
 
 #include "log/Logger.h"
@@ -19,9 +20,12 @@ namespace vacdm
   {
 #ifdef DEBUG_BUILD
     AllocConsole();
+#pragma warning(disable : 6031)
     freopen("CONOUT$", "w", stdout);
     freopen("CONOUT$", "w", stderr);
+#pragma warning(enable : 6031)
 #endif
+    logging::Logger::instance().log("Initialisation", std::string(PLUGIN_VERSION), logging::Logger::Level::Info);
     DisplayMessage("Version " + std::string(PLUGIN_VERSION) + " loaded",
                    "Initialisation");
 
@@ -32,8 +36,6 @@ namespace vacdm
     this->m_dllPath = std::string(path);
 
     this->reloadConfiguration();
-
-    logging::Logger::instance().log("Initialisation", std::string(PLUGIN_VERSION), logging::Logger::Level::Info);
   }
   vACDM::~vACDM()
   {
@@ -161,6 +163,44 @@ namespace vacdm
 
   // Euroscope Events:
 
+  void vACDM::OnGetTagItem(EuroScopePlugIn::CFlightPlan FlightPlan, EuroScopePlugIn::CRadarTarget RadarTarget, int ItemCode, int TagData,
+                           char sItemString[16], int *pColorCode, COLORREF *pRGB, double *pFontSize)
+  {
+    std::ignore = RadarTarget;
+    std::ignore = TagData;
+    std::ignore = pFontSize;
+
+    *pColorCode = EuroScopePlugIn::TAG_COLOR_RGB_DEFINED;
+
+    if (nullptr == FlightPlan.GetFlightPlanData().GetPlanType() || 0 == std::strlen(FlightPlan.GetFlightPlanData().GetPlanType()))
+      return;
+    // filter VFR flights
+    if (std::string_view("I") != FlightPlan.GetFlightPlanData().GetPlanType())
+    {
+      *pRGB = (190 << 16) | (190 << 8) | 190;
+      std::strcpy(sItemString, "----");
+      return;
+    }
+
+    std::string_view departureAirport(FlightPlan.GetFlightPlanData().GetOrigin());
+    std::lock_guard guard(this->m_airportLock);
+    for (auto &airport : this->m_airports)
+    {
+      if (airport->getAirportIcao() != departureAirport)
+        continue;
+
+      if (airport->pilotExists(FlightPlan.GetCallsign()) != true)
+        continue;
+
+      const auto &pilot = airport->getPilot(FlightPlan.GetCallsign());
+      std::stringstream outputText;
+
+      tagitems::displayTagItem(ItemCode, pilot, outputText, pRGB);
+
+      std::strcpy(sItemString, outputText.str().c_str());
+      break;
+    }
+  }
   void vACDM::OnTimer(const int Counter)
   {
     // run update cycle every 5 seconds
