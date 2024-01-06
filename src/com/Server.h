@@ -81,5 +81,6 @@ namespace vacdm::com
     void sendCustomDpiRequest(const types::Pilot &data);
 
     const std::string &errorMessage() const;
+    void setMaster(bool master);
   };
 }

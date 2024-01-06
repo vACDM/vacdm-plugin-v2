@@ -383,3 +383,8 @@ void Server::sendCustomDpiRequest(const types::Pilot &data)
 
   this->sendPatchMessage("/api/v1/messages/x-dpi-r", message);
 }
+
+void Server::setMaster(bool master)
+{
+  this->m_clientIsMaster = master;
+}

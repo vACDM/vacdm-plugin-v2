@@ -4,6 +4,7 @@
 #include <numeric>
 #include <Windows.h>
 #include <shlwapi.h>
+#include <algorithm>
 
 #include "com/Server.h"
 #include "config/ConfigParser.h"
@@ -20,10 +21,11 @@ namespace vacdm
   {
 #ifdef DEBUG_BUILD
     AllocConsole();
+#pragma warning(push)
 #pragma warning(disable : 6031)
     freopen("CONOUT$", "w", stdout);
     freopen("CONOUT$", "w", stderr);
-#pragma warning(enable : 6031)
+#pragma warning(pop)
 #endif
     logging::Logger::instance().log("Initialisation", std::string(PLUGIN_VERSION), logging::Logger::Level::Info);
     DisplayMessage("Version " + std::string(PLUGIN_VERSION) + " loaded",
@@ -162,6 +164,79 @@ namespace vacdm
   }
 
   // Euroscope Events:
+
+  bool vACDM::OnCompileCommand(const char *sCommandLine)
+  {
+    std::string command(sCommandLine);
+
+#pragma warning(push)
+#pragma warning(disable : 4244)
+    std::transform(command.begin(), command.end(), command.begin(), ::toupper);
+#pragma warning(pop)
+
+    // only handle commands containing ".vacdm"
+    if (0 != command.find(".VACDM"))
+      return false;
+
+    // master command
+    if (std::string::npos != command.find("MASTER"))
+    {
+      bool userIsConnected = this->GetConnectionType() != EuroScopePlugIn::CONNECTION_TYPE_NO;
+      bool userIsInSweatbox = this->GetConnectionType() == EuroScopePlugIn::CONNECTION_TYPE_SWEATBOX;
+      bool userIsObserver = std::string_view(this->ControllerMyself().GetCallsign()).ends_with("_OBS") == true || this->ControllerMyself().GetFacility() == 0;
+      bool serverAllowsObsAsMaster = com::Server::instance().getServerConfig().allowMasterAsObserver;
+      bool serverAllowsSweatboxAsMaster = com::Server::instance().getServerConfig().allowMasterInSweatbox;
+
+      std::string userIsNotEligibleMessage;
+
+      if (!userIsConnected)
+      {
+        userIsNotEligibleMessage = "You are not logged in to the VATSIM network";
+      }
+      else if (userIsObserver && !serverAllowsObsAsMaster)
+      {
+        userIsNotEligibleMessage = "You are logged in as Observer and Server does not allow Observers to be Master";
+      }
+      else if (userIsInSweatbox && !serverAllowsSweatboxAsMaster)
+      {
+        userIsNotEligibleMessage = "You are logged in on a Sweatbox Server and Server does not allow Sweatbox connections";
+      }
+      else
+      {
+        DisplayMessage("Executing vACDM as the MASTER");
+        logging::Logger::instance().log("vACDM", "Switched to MASTER", logging::Logger::Level::Info);
+        com::Server::instance().setMaster(true);
+
+        return true;
+      }
+
+      DisplayMessage("Cannot upgrade to Master");
+      DisplayMessage(userIsNotEligibleMessage);
+      return true;
+    }
+    else if (std::string::npos != command.find("SLAVE"))
+    {
+      DisplayMessage("Executing vACDM as the SLAVE");
+      logging::Logger::instance().log("vACDM", "Switched to SLAVE", logging::Logger::Level::Info);
+      com::Server::instance().setMaster(false);
+      return true;
+    }
+    else if (std::string::npos != command.find("RELOAD"))
+    {
+      this->reloadConfiguration();
+      return true;
+    }
+    else if (std::string::npos != command.find("LOGLEVEL"))
+    {
+      const auto elements = vacdm::utils::String::splitString(command, " ");
+      if (elements.size() == 3)
+      {
+        DisplayMessage(logging::Logger::instance().handleLogLevelCommand(elements[2]));
+        return true;
+      }
+    }
+    return false;
+  }
 
   void vACDM::OnGetTagItem(EuroScopePlugIn::CFlightPlan FlightPlan, EuroScopePlugIn::CRadarTarget RadarTarget, int ItemCode, int TagData,
                            char sItemString[16], int *pColorCode, COLORREF *pRGB, double *pFontSize)

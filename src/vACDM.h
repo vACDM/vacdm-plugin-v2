@@ -46,6 +46,7 @@ namespace vacdm
 
   public:
     // Euroscope Events
+    bool OnCompileCommand(const char *sCommandLine) override;
     void OnGetTagItem(EuroScopePlugIn::CFlightPlan FlightPlan, EuroScopePlugIn::CRadarTarget RadarTarget, int ItemCode, int TagData, char sItemString[16], int *pColorCode, COLORREF *pRGB, double *pFontSize) override;
     void OnTimer(const int Counter) override;
     void OnAirportRunwayActivityChanged() override;

@@ -12,7 +12,8 @@ namespace vacdm::logging
     {
       Info,
       Utils,
-      Disabled
+      System,
+      Disabled,
     };
 
   private:
@@ -23,6 +24,7 @@ namespace vacdm::logging
   public:
     ~Logger();
     void setMinimumLevel(Level level);
+    std::string handleLogLevelCommand(std::string level);
     void log(const std::string &sender, const std::string &message, Level level);
     static Logger &instance();
   };
