@@ -52,5 +52,6 @@ namespace vacdm
     void OnGetTagItem(EuroScopePlugIn::CFlightPlan FlightPlan, EuroScopePlugIn::CRadarTarget RadarTarget, int ItemCode, int TagData, char sItemString[16], int *pColorCode, COLORREF *pRGB, double *pFontSize) override;
     void OnTimer(const int Counter) override;
     void OnAirportRunwayActivityChanged() override;
+    void OnFlightPlanControllerAssignedDataUpdate(EuroScopePlugIn::CFlightPlan flightplan, const int dataType) override;
   };
 }

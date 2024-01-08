@@ -352,6 +352,15 @@ namespace vacdm
     }
   }
 
+  void vACDM::OnFlightPlanControllerAssignedDataUpdate(EuroScopePlugIn::CFlightPlan flightplan, const int dataType)
+  {
+    // only handle relevant changes which are modelled in Pilot type
+    if (dataType != EuroScopePlugIn::CTR_DATA_TYPE_TEMPORARY_ALTITUDE && dataType != EuroScopePlugIn::CTR_DATA_TYPE_SQUAWK)
+      return;
+
+    this->updatePilotData(flightplan);
+  }
+
   // Tag Items / Functions
 
   void vACDM::RegisterTagItems()
