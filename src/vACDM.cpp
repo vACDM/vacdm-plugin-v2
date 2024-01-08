@@ -38,6 +38,7 @@ namespace vacdm
     this->m_dllPath = std::string(path);
 
     this->reloadConfiguration();
+    this->RegisterTagItems();
   }
   vACDM::~vACDM()
   {
@@ -276,6 +277,7 @@ namespace vacdm
       break;
     }
   }
+
   void vACDM::OnTimer(const int Counter)
   {
     // run update cycle every 5 seconds
@@ -348,5 +350,24 @@ namespace vacdm
         }
       }
     }
+  }
+
+  // Tag Items / Functions
+
+  void vACDM::RegisterTagItems()
+  {
+    RegisterTagItemType("EOBT", tagitems::EOBT);
+    RegisterTagItemType("TOBT", tagitems::TOBT);
+    RegisterTagItemType("TSAT", tagitems::TSAT);
+    RegisterTagItemType("TTOT", tagitems::TTOT);
+    RegisterTagItemType("EXOT", tagitems::EXOT);
+    RegisterTagItemType("ASAT", tagitems::ASAT);
+    RegisterTagItemType("AOBT", tagitems::AOBT);
+    RegisterTagItemType("ATOT", tagitems::ATOT);
+    RegisterTagItemType("ASRT", tagitems::ASRT);
+    RegisterTagItemType("AORT", tagitems::AORT);
+    RegisterTagItemType("CTOT", tagitems::CTOT);
+    RegisterTagItemType("ECFMP Measures", tagitems::ECFMP_MEASURES);
+    RegisterTagItemType("Event Booking", tagitems::EVENT_BOOKING);
   }
 }

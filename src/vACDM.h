@@ -44,6 +44,8 @@ namespace vacdm
     void runEuroscopeUpdateCycle();
     void updatePilotData(const EuroScopePlugIn::CFlightPlan &flightplan);
 
+    void RegisterTagItems();
+
   public:
     // Euroscope Events
     bool OnCompileCommand(const char *sCommandLine) override;
